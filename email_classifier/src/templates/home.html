@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Email Classifier{% endblock %}
+
+{% block content %}
+    <h1>Bem vindo ao classificador de email</h1>
+    <form action="{% url 'classify_email' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" id="emailFile" name="emailFile" multiple></input>
+        <br>
+        <textarea rows="" cols="" id="emailTextArea" name="emailTextArea"></textarea>
+        <button type="submit">Classificar</button>
+    </form>
+    <p></p>
+    <p></p>
+{% endblock %}

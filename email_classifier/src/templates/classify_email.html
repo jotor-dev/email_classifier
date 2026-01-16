@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Email Classifier{% endblock %}
+
+{% block content %}
+    <h1>Esse é o resultado da análise</h1>
+    {% for item in data %}
+        <h2>Arquivo: {{ item.nome }}</h2>
+
+        {% if item.sucesso %}
+            <p id="classe_id">Classe: {{ item.categoria }}</p>
+            <p id="confianca_id">Porcentagem: {{ item.porcentagem }}</p>
+            <p id="sugestao_id">Sugestão: {{ item.sugestao }}</p>
+            <hr>
+
+            <p><em>Resposta Sugerida:</em> 
+            {% if item.categoria == "Produtivo" %}
+                "Prezado, recebemos seu contato e daremos prioridade ao seu pedido financeiro."
+            {% else %}
+                "Agradecemos o contato. Esta mensagem foi arquivada automaticamente."
+            {% endif %}
+            </p>
+
+        {% else %}
+            <p style="color: red;">Erro ao processar o arquivo: {{ item.error }}</p>
+            <hr>
+        {% endif %}
+
+    {% endfor %}
+
+    <a href="{% url 'home' %}">Voltar ao inicio</a>
+{% endblock %}
