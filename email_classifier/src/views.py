@@ -23,4 +23,4 @@ def classify_email(request: HttpRequest) -> HttpResponse:
             return render(request, "classify_email.html", {"data": response})
         else:
             logger.warning(f"Formulário inválido. Tente novamente. {form.errors}")
-            return render(request, "classify_email.html", {"form": form})
+            return render(request, "home.html", {"form": form})

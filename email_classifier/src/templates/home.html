@@ -6,6 +6,15 @@
 <h3>Bem vindo ao classificador de email</h3>
 <form action="{% url 'classify_email' %}" method="post" enctype="multipart/form-data">
     {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <div class="form-floating">
         <textarea class="form-control" placeholder="Leave a comment here" id="emailTextArea" name="emailTextArea"></textarea>
         <label for="floatingTextarea">Insira o email por texto</label>
@@ -14,6 +23,14 @@
         <br>
         <label for="emailFile" class="form-label">Insira o arquivo</label>
         <input class="form-control" type="file" id="emailFile" name="emailFile" multiple>
+
+        {% if form.emailFile.errors %}
+            <div class="alert alert-danger" role="alert">
+                {% for error in form.emailFile.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
     </div>
     <button type="submit" class="btn btn-primary">Classificar</button>
 </form>
