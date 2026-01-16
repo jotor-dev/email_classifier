@@ -2,4 +2,5 @@ from django import forms
 
 
 class UploadFileForm(forms.Form):
-    emailFile = forms.FileField()
+    emailTextArea = forms.CharField(widget=forms.Textarea, required=False)
+    emailFile = forms.FileField(required=False)

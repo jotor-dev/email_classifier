@@ -83,6 +83,9 @@ def handle_request(request: HttpRequest) -> List[Dict[str, any]]:
             logger.warning(f"Error processing text area input: {e}")
             result.append(formatError("Texto Inserido", str(e)))
 
+    if not files:
+        return result
+    
     for f in files:
         try:
             content = handle_file(f)
