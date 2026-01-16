@@ -101,7 +101,6 @@ def formatSucess(nome: str, content: dict) -> dict:
         "nome": nome,
         "categoria": best_prediction.label,
         "porcentagem": round(best_prediction.score * 100, 2),
-        "sugestao": "Resposta" if best_prediction.label == "Produtivo" else "Improdutivo",
         "sucesso": True
     }
 

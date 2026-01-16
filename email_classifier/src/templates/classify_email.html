@@ -3,30 +3,37 @@
 {% block title %}Home - Email Classifier{% endblock %}
 
 {% block content %}
-    <h1>Esse é o resultado da análise</h1>
-    {% for item in data %}
-        <h2>Arquivo: {{ item.nome }}</h2>
+<h1>Esse é o resultado da análise</h1>
 
-        {% if item.sucesso %}
-            <p id="classe_id">Classe: {{ item.categoria }}</p>
-            <p id="confianca_id">Porcentagem: {{ item.porcentagem }}</p>
-            <p id="sugestao_id">Sugestão: {{ item.sugestao }}</p>
+<ol class="list-group list-group-numbered">
+    {% for item in data %}
+    <li class="list-group-item d-flex justify-content-between align-items-start">
+        <div class="ms-2 me-auto">
+            <div class="fw-bold">
+                <h4>{{ item.nome }}</h4>
+            </div>
+
+            {% if item.sucesso %}
+            <p id="classe_id"><b>Classe:</b> {{ item.categoria }}</p>
+            <span class="badge text-bg-primary rounded-pill">{{ item.porcentagem }}%</span>
             <hr>
 
-            <p><em>Resposta Sugerida:</em> 
-            {% if item.categoria == "Produtivo" %}
+            <p><em><b>Resposta Sugerida:</b></em>
+                {% if item.categoria == "Produtivo" %}
                 "Prezado, recebemos seu contato e daremos prioridade ao seu pedido financeiro."
-            {% else %}
+                {% else %}
                 "Agradecemos o contato. Esta mensagem foi arquivada automaticamente."
-            {% endif %}
+                {% endif %}
             </p>
 
-        {% else %}
+            {% else %}
             <p style="color: red;">Erro ao processar o arquivo: {{ item.error }}</p>
             <hr>
-        {% endif %}
+            {% endif %}
+        </div>
+    </li>
 
     {% endfor %}
+</ol>
 
-    <a href="{% url 'home' %}">Voltar ao inicio</a>
 {% endblock %}
