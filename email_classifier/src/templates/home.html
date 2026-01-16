@@ -1,39 +1,59 @@
 {% extends "base.html" %}
 
-{% block title %}Home - Email Classifier{% endblock %}
+{% block title %}Início - Email Classifier{% endblock %}
 
 {% block content %}
-<h3>Bem vindo ao classificador de email</h3>
-<form action="{% url 'classify_email' %}" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-
-    {% if form.non_field_errors %}
-        <div class="alert alert-danger" role="alert">
-            {% for error in form.non_field_errors %}
-                <p>{{ error }}</p>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    <div class="form-floating">
-        <textarea class="form-control" placeholder="Leave a comment here" id="emailTextArea" name="emailTextArea"></textarea>
-        <label for="floatingTextarea">Insira o email por texto</label>
-    </div>
-    <div class="mb-3">
-        <br>
-        <label for="emailFile" class="form-label">Insira o arquivo</label>
-        <input class="form-control" type="file" id="emailFile" name="emailFile" multiple>
-
-        {% if form.emailFile.errors %}
-            <div class="alert alert-danger" role="alert">
-                {% for error in form.emailFile.errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
+<div class="row justify-content-center mt-5">
+    <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-body p-5">
+            <div class="text-center mb-4">
+                <h3 class="fw-bold text-primary">Classificador de Email</h3>
             </div>
-        {% endif %}
+
+            <form action="{% url 'classify_email' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger shadow-sm" role="alert">
+                    {% for error in form.non_field_errors %}
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="form-floating mb-4">
+                    <textarea class="form-control" id="emailTextArea" name="emailTextArea"
+                        style="height: 150px"></textarea>
+                    <label for="emailTextArea">Insira o conteúdo do email por texto</label>
+                </div>
+
+                <div class="text-center my-3">
+                    <span class="badge bg-light text-dark px-3 py-2">OU</span>
+                </div>
+
+                <div class="mb-4">
+                    <label for="emailFile" class="form-label fw-semibold">Anexar documentos (.pdf ou .txt)</label>
+                    <div class="input-group">
+                        <input class="form-control" type="file" id="emailFile" name="emailFile" multiple>
+                    </div>
+                    <div class="form-text">Podes selecionar múltiplos arquivos simultaneamente.</div>
+
+                    {% if form.emailFile.errors %}
+                    <div class="alert alert-danger mt-2 py-2 small" role="alert">
+                        {% for error in form.emailFile.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                        <i class="bi bi-cpu-fill me-2"></i> Iniciar Classificação
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-    <button type="submit" class="btn btn-primary">Classificar</button>
-</form>
-<p></p>
-<p></p>
+</div>
 {% endblock %}

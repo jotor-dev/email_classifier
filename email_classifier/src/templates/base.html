@@ -8,7 +8,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Document{% endblock %}</title>
+    <title>{% block title %}Email Classifier{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 </head>
 
 <body>
@@ -32,6 +33,22 @@
         {% block content %}
         {% endblock %}
     </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        $(document).ready(
+            new DataTable('#tableResult', {
+                "paging": true,
+                "searching": true,
+                "info": false,
+                "responsive": true
+            })
+        );
+    </script>
 </body>
+
 
 </html>
