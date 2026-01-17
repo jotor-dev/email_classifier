@@ -1,4 +1,5 @@
-{% load django_bootstrap5 %} 
+{% load static %}
+{% load django_bootstrap5 %}
 {% bootstrap_css %}
 {% bootstrap_javascript %}
 
@@ -9,6 +10,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Email Classifier{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'resources/main.css' %}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 </head>
 
@@ -16,7 +18,9 @@
     <header>
         <nav class="navbar navbar-expand-lg bg-body-tertiary">
             <div class="container-fluid">
-                <a class="navbar-brand" href="{% url 'home' %}"><b><h1 class="display-4">Email Classifier</h1></b></a>
+                <a class="navbar-brand" href="{% url 'home' %}"><b>
+                        <h1 class="display-4">Email Classifier</h1>
+                    </b></a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false"
                     aria-label="Toggle navigation">
@@ -47,6 +51,25 @@
                 "responsive": true
             })
         );
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const $form = $('form');
+            const $overlay = $('#loadingOverlay');
+            const $submitBtn = $form.find('button[type="submit"]');
+
+            $(window).on('pageshow', function (event) {
+                if (event.originalEvent.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                    $overlay.addClass('d-none');
+                    $submitBtn.prop('disabled', false);
+                }
+            });
+
+            $form.on('submit', function () {
+                $overlay.removeClass('d-none');
+
+                $submitBtn.prop('disabled', true);
+            });
+        });
     </script>
 </body>
 
