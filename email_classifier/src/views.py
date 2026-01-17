@@ -1,12 +1,14 @@
 from django.shortcuts import render, HttpResponse
 from django.http import HttpRequest
-from django.contrib import messages
 from .forms import UploadFileForm
 import logging
 
-from .service.UploadService import handle_request
+from .service.FileProcessorService import FileProcessorService
+from .service.EmailAnalyzerService import EmailAnalyzerService
+
 
 logger = logging.getLogger(__name__)
+fileProcessor = FileProcessorService(EmailAnalyzerService())
 
 # Create your views here.
 def home(request: HttpRequest) -> HttpResponse:
@@ -17,7 +19,7 @@ def classify_email(request: HttpRequest) -> HttpResponse:
         form = UploadFileForm(request.POST, request.FILES)
 
         if form.is_valid():
-            response = handle_request(request)
+            response = fileProcessor.handle_request(request)
 
             #logger.warning(f"Classification response: {response}")
             return render(request, "classify_email.html", {"data": response})
