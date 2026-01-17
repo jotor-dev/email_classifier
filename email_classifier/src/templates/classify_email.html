@@ -27,11 +27,7 @@
                 <span class="badge text-bg-primary rounded-pill">{{ item.porcentagem }}%</span>
             </td>
 
-                {% if item.categoria == "Produtivo" %}
-                <td>"Prezado, recebemos seu contato e daremos prioridade ao seu pedido financeiro."</td>
-                {% else %}
-                <td>"Agradecemos o contato. Esta mensagem foi arquivada automaticamente."</td>
-                {% endif %}
+                <td>{{ item.sugestão }}</td>
 
             {% else %}
             <td>

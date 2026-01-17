@@ -1,11 +1,9 @@
-import os
-import PyPDF2
+import os, PyPDF2, logging, re, json, os
+import requests
 from dotenv import load_dotenv
 from typing import List, Dict
 from django.core.files.uploadedfile import UploadedFile
 from django.http import HttpRequest
-from huggingface_hub import InferenceClient
-import logging
 from pathlib import Path
 
 load_dotenv()
@@ -13,23 +11,69 @@ load_dotenv()
 API_TOKEN: str = os.getenv("API_TOKEN")
 API_URL: str = os.getenv("API_URL")
 MODEL_NAME: str = os.getenv("MODEL_NAME")
-headers: dict = {"Authorization": f"Bearer {API_TOKEN}"}
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-client = InferenceClient(provider="auto", api_key=API_TOKEN)
 logger = logging.getLogger(__name__)
 
-def query_huggingface_api(text: str) -> list:
+def formatar_json(texto: str) -> dict:
     try:
-        response = client.zero_shot_classification(
-            text,
-            model=MODEL_NAME,
-            candidate_labels=["Produtivo", "Improdutivo"]
-        )
-        return response
+        match = re.search(r'\{.*\}', texto, re.DOTALL)
+        if match:
+            return json.loads(match.group())
+        raise ValueError("Formato JSON não detectado.")
     except Exception as e:
-        print(f"Error querying Huggingface API: {e}")
-        return {"error": str(e)}
+        logger.error(f"Falha ao formatar JSON: {e}")
+        raise
+
+def query_analyse_email(text: str) -> dict:
+    prompt = f"""
+    Você é um Assistente. Sua missão é analisar e-mails e decidir se eles exigem ação humana (Produtivo) ou se são distrações/automáticos (Improdutivo).
+
+    REGRAS PARA A SUGESTÃO:
+    1. Se for PRODUTIVO: Escreva uma resposta curta, profissional e personalizada que o usuário possa enviar agora.
+    2. Se for IMPRODUTIVO: Sugira uma ação de limpeza em relação ao email.
+    3. Nunca use frases genéricas. Seja claro.
+
+    Email: "{text[:1200]}"
+
+    Responda estritamente neste formato JSON:
+    {{
+        "categoria": "Produtivo" ou "Improdutivo",
+        "porcentagem": 0-100 que indica a confiança na categorização,
+        "sugestão": "sua sugestão executiva aqui"
+    }}
+    """
+
+    try:
+        response = requests.post(
+            url=API_URL,
+            headers={
+                "Authorization": f"Bearer {API_TOKEN}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "http://localhost:8000", 
+                "Email Classifier": "Email Classifier App"
+            },
+            data=json.dumps({
+                "model": MODEL_NAME,
+                "messages": [{"role": "user", "content": prompt}]
+            }),
+            timeout=30
+        )
+
+        response.raise_for_status()
+        
+        response = response.json()
+        response = response['choices'][0]['message']['content']
+
+        return formatar_json(response)
+
+    except Exception as e:
+        logger.error(f"Erro na análise: {e}")
+        return {
+            "categoria": "Indefinido",
+            "porcentagem": 0,
+            "sugestão": "O sistema não pôde gerar uma resposta automática para este item."
+        }
 
 def save_uploaded_file(f: UploadedFile, file_path: str) -> None:
     with open(file_path, "wb+") as destination:
@@ -48,9 +92,16 @@ def read_content_file_pdf(file_path: str) -> str:
 
         content = ""
         for page in reader.pages:
-            content += page.extract_text()
+            text_page = page.extract_text()
+            if text_page:
+                content += text_page
 
         return content
+
+def normalize_text(text: str) -> str:
+    text = re.sub(r'\s+', ' ', text)
+    text = text.strip()
+    return text
 
 def handle_file(f: UploadedFile) -> dict:
     file_path = BASE_DIR / 'src' / 'files' / f.name
@@ -60,14 +111,17 @@ def handle_file(f: UploadedFile) -> dict:
     save_uploaded_file(f, file_path)
 
     if f.name.endswith(".pdf"):
-        content = read_content_file_pdf(file_path)
+        text = read_content_file_pdf(file_path)
     else:
-        content = read_content_file(file_path)
+        text = read_content_file(file_path)
 
-    return query_huggingface_api(content)
+    if not text:
+        return {"categoria": "Erro", "porcentagem": 0, "sugestão": "Erro na extração do texto."}
+
+    return query_analyse_email(normalize_text(text))
 
 def handle_text_area(text: str) -> dict:
-    return query_huggingface_api(text)
+    return query_analyse_email(normalize_text(text))
 
 def handle_request(request: HttpRequest) -> List[Dict[str, any]]:
     files: List[UploadedFile] = request.FILES.getlist('emailFile')
@@ -80,7 +134,7 @@ def handle_request(request: HttpRequest) -> List[Dict[str, any]]:
             result.append(formatSucess("Texto Inserido", content))
 
         except Exception as e:
-            logger.warning(f"Error processing text area input: {e}")
+            logger.exception(f"Error processing text area input: {e}")
             result.append(formatError("Texto Inserido", str(e)))
 
     if not files:
@@ -92,18 +146,18 @@ def handle_request(request: HttpRequest) -> List[Dict[str, any]]:
             result.append(formatSucess(f.name, content))
 
         except Exception as e:
-            logger.warning(f"Error processing file {f.name}: {e}")
+            logger.exception(f"Error processing file {f.name}: {e}")
             result.append(formatError(f.name, str(e)))
 
     return result
 
 def formatSucess(nome: str, content: dict) -> dict:
-    best_prediction = content[0]
 
     return {
         "nome": nome,
-        "categoria": best_prediction.label,
-        "porcentagem": round(best_prediction.score * 100, 2),
+        "categoria": content["categoria"],
+        "porcentagem": content["porcentagem"],
+        "sugestão": content["sugestão"],
         "sucesso": True
     }
 
